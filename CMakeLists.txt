@@ -20,6 +20,8 @@ endif( WIN32 )
 ################################ MPI ################################
 option(USE_MPI OFF)
 if( USE_MPI )
+	find_package(OpenCV REQUIRED)
+	include_directories( ${OpenCV_INCLUDE_DIRS} )
     find_package( MPI )
     if( MPI_FOUND )
         include_directories( ${MPI_INCLUDE_PATH} )

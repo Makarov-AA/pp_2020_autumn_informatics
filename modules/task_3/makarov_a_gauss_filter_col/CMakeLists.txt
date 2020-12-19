@@ -10,7 +10,7 @@ if( USE_MPI )
     set(ProjectId "${ProjectId}_mpi")
     project( ${ProjectId} )
     message( STATUS "-- " ${ProjectId} )
-
+	
     file(GLOB_RECURSE header_files "*.h")
     file(GLOB_RECURSE source_files "*.cpp")
     set(PACK_LIB "${ProjectId}_lib")
@@ -28,6 +28,7 @@ if( USE_MPI )
     endif( MPI_LINK_FLAGS )
     target_link_libraries( ${ProjectId} ${MPI_LIBRARIES} )
     target_link_libraries(${ProjectId} gtest gtest_main)
+	target_link_libraries(${ProjectId} ${OpenCV_LIBS})
 
     enable_testing()
     add_test(NAME ${ProjectId} COMMAND ${ProjectId})
