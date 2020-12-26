@@ -50,9 +50,6 @@ TEST(GaussFilter, My_image_test) {
 		for (int i = 0; i < image.size(); i++) 
 			image[i] = static_cast<unsigned int>(vec[i]);
     }
-	/*if (rank == 0) {
-        image = generate_image(w, h);
-    }*/
     if (rank == 0) start_time = MPI_Wtime();
     std::vector<unsigned int> result_par = gaussFilterParallel(image, w, h,
                                                                 sigma, radius);
