@@ -43,7 +43,7 @@ TEST(Sum_elem_row_MPI, Matrix_test_24x80) {
 TEST(Sum_elem_row_MPI, Matrix_test_150x150) {
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  const int row = 150, col = 150;
+  const int row = 100, col = 100;
   std::vector<int> global_vec;
 
   if (rank == 0) {

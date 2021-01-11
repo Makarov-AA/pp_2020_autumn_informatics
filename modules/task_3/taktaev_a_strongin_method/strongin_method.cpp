@@ -90,7 +90,7 @@ struct Arteboss {
 
     Arteboss() {
         R = 0;
-        T = 0;
+        T = 1;
     }
 };
 
@@ -106,60 +106,28 @@ double Strongin::parStronginSearch() {
     double xx;
 
     while (delta > eps) {
-        if (n <= proc_num) {
-            for (int i = 1; i < n; i++) {
-                if (proc_rank == i - 1) {
-                    _m = (std::abs(z[i] - z[i - 1])) / (x[i] - x[i - 1]);
-                }
-            }
-        } else {
-            for (int i = 1; i < proc_num; i++) {
-                if (proc_rank == i - 1) {
-                    _m = (std::abs(z[i] - z[i - 1])) / (x[i] - x[i - 1]);
-                }
-            }
-            if (proc_rank == proc_num - 1) {
-                for (int i = proc_num; i < n; i++) {
-                    if ((std::abs(z[i] - z[i - 1])) / (x[i] - x[i - 1]) > _m) {
-                        _m = (std::abs(z[i] - z[i - 1])) / (x[i] - x[i - 1]);
-                    }
+        for (int i = 1; i < n; i++) {
+            if (proc_rank == (i - 1) % proc_num) {
+                if ((std::abs(z[i] - z[i - 1])) / (x[i] - x[i - 1]) > _m) {
+                     _m = (std::abs(z[i] - z[i - 1])) / (x[i] - x[i - 1]);
                 }
             }
         }
-        MPI_Reduce(&_m, &m, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Allreduce(&_m, &m, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
         m = (m == 0 ? 1 : r * m);
-        MPI_Bcast(&m, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
         Arteboss r_max;
         Arteboss r1;
-        if (n <= proc_num) {
-            for (int i = 1; i < n; i++) {
-                if (proc_rank == i - 1) {
-                    r1.R = m * (x[i] - x[i - 1]) + (z[i] - z[i - 1]) * (z[i] - z[i - 1]) / (m * (x[i] - x[i - 1]))
-                         - 2 * (z[i] + z[i - 1]);
-                    r1.T = i;
-                }
-            }
-        } else {
-            for (int i = 1; i < proc_num; i++) {
-                if (proc_rank == i - 1) {
-                    r1.R = m * (x[i] - x[i - 1]) + (z[i] - z[i - 1]) * (z[i] - z[i - 1]) / (m * (x[i] - x[i - 1]))
-                         - 2 * (z[i] + z[i - 1]);
-                    r1.T = i;
-                }
-            }
-            if (proc_rank == proc_num - 1) {
-                for (int i = proc_num; i < n; i++) {
-                    if (m * (x[i] - x[i - 1]) + (z[i] - z[i - 1]) * (z[i] - z[i - 1]) / (m * (x[i] - x[i - 1]))
+        for (int i = 1; i < n; i++) {
+            if (proc_rank == (i - 1) % proc_num) {
+                if (m * (x[i] - x[i - 1]) + (z[i] - z[i - 1]) * (z[i] - z[i - 1]) / (m * (x[i] - x[i - 1]))
                          - 2 * (z[i] + z[i - 1]) > r1.R) {
-                        r1.R = m * (x[i] - x[i - 1]) + (z[i] - z[i - 1]) * (z[i] - z[i - 1]) / (m * (x[i] - x[i - 1]))
+                    r1.R = m * (x[i] - x[i - 1]) + (z[i] - z[i - 1]) * (z[i] - z[i - 1]) / (m * (x[i] - x[i - 1]))
                          - 2 * (z[i] + z[i - 1]);
-                        r1.T = i;
-                    }
+                    r1.T = i;
                 }
             }
         }
-        MPI_Reduce(&r1, &r_max, 1, MPI_DOUBLE_INT, MPI_MAXLOC, 0, MPI_COMM_WORLD);
-        MPI_Bcast(&r_max, 1, MPI_DOUBLE_INT, 0, MPI_COMM_WORLD);
+        MPI_Allreduce(&r1, &r_max, 1, MPI_DOUBLE_INT, MPI_MAXLOC, MPI_COMM_WORLD);
         t = r_max.T;
         xx = (x[t - 1] + x[t]) / 2 - (z[t] - z[t - 1]) / (2 * m);
         addNode(xx);

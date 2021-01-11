@@ -39,42 +39,38 @@ std::vector<double> getParallelMultiplication(std::vector<double> matrixA,
 
     int stripeHeight = aRows / size;
     int stripeSize = stripeHeight * aCols;
-    std::vector<double> matrixC(aRows * aRows);
+    std::vector<double> matrixC(aRows * bCols);
 
-    std::vector<double> matrixAStripe(stripeHeight * aCols);
-    std::vector<double> matrixBStripe(aRows * bCols);
-    std::vector<double> matrixCStripe;
-    MPI_Status status;
+    std::vector<double> matrixAStripe(stripeSize);
+    std::vector<double> matrixBStripe(stripeSize);
+    std::vector<double> matrixCStripe(stripeSize);
 
-    if (rank == 0) {
-        for (int i = 1; i < size; i++) {
-            MPI_Send(&matrixA[0] + i * stripeSize, stripeSize, MPI_DOUBLE, i, 0, MPI_COMM_WORLD);
-            MPI_Send(&matrixB[0], aCols * bCols, MPI_DOUBLE, i, 1, MPI_COMM_WORLD);
+    MPI_Scatter(matrixA.data(), stripeSize, MPI_DOUBLE,
+        matrixAStripe.data(), stripeSize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Scatter(matrixB.data(), stripeSize, MPI_DOUBLE,
+        matrixBStripe.data(), stripeSize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+    double tmp = 0.0;
+    int nextProc = rank + 1;
+    if (rank == size - 1) nextProc = 0;
+    int prevProc = rank - 1;
+    if (rank == 0) prevProc = size - 1;
+    MPI_Status Status;
+    int prevData = rank;
+    for (int p = 0; p < size; p++) {
+        for (int i = 0; i < stripeHeight; i++) {
+            for (int j = 0; j < bCols; j++) {
+                tmp = 0;
+                for (int k = 0; k < stripeHeight; k++)
+                    tmp += matrixAStripe[prevData * stripeHeight + i * aCols + k] * matrixBStripe[k * bCols + j];
+                matrixCStripe[i * bCols + j] += tmp;
+            }
         }
+        prevData -= 1;
+        if (prevData < 0) prevData = size - 1;
+        MPI_Sendrecv_replace(matrixBStripe.data(), stripeSize, MPI_DOUBLE,
+            nextProc, 0, prevProc, 0, MPI_COMM_WORLD, &Status);
     }
-
-    if (rank == 0) {
-        matrixAStripe = std::vector<double>(matrixA.begin(), matrixA.begin() + stripeSize);
-        matrixBStripe = std::vector<double>(matrixB.begin(), matrixB.begin() + aCols * bCols);
-    } else {
-        MPI_Recv(&matrixAStripe[0], stripeSize, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, &status);
-        MPI_Recv(&matrixBStripe[0], aCols * bCols,
-            MPI_DOUBLE, 0, 1, MPI_COMM_WORLD, &status);
-    }
-
-    matrixCStripe = getSequentialMultiplication(matrixAStripe,
-                    matrixBStripe, aRows, aCols, bCols);
-
-    MPI_Allgather(matrixCStripe.data(), stripeSize,
-        MPI_DOUBLE, matrixC.data(), stripeSize, MPI_DOUBLE, MPI_COMM_WORLD);
-
-    if (rank == 0) {
-        matrixAStripe = std::vector<double>(matrixA.begin() + size * stripeSize, matrixA.end());
-        std::vector<double> remaining = getSequentialMultiplication(matrixAStripe, matrixBStripe, aRows, aCols, bCols);
-        for (unsigned int i = 0; i < remaining.size(); i++) {
-            matrixC[size * stripeSize + i] = remaining[i];
-        }
-    }
-
+    MPI_Gather(matrixCStripe.data(), stripeSize, MPI_DOUBLE, matrixC.data(), stripeSize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     return matrixC;
 }

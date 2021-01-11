@@ -5,14 +5,14 @@
 #include <vector>
 #include "./mat_mult_horiz_only.h"
 
-TEST(Parallel_Operations_MPI, MATRICES_10x10) {
+TEST(Parallel_Operations_MPI, MATRICES_16x16) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     std::vector<double> a;
     std::vector<double> b;
 
-    int aR = 10, aC = 10, bC = 10;
+    int aR = 16, aC = 16, bC = 16;
 
     if (rank == 0) {
         a = getRandomMatrix(aR, aC, time(0));
@@ -32,18 +32,20 @@ TEST(Parallel_Operations_MPI, MATRICES_10x10) {
         std::vector<double> sequential_result = getSequentialMultiplication(a, b, aR, aC, bC);
         end = MPI_Wtime();
         std::cout << "Time for sequential is " << end - start << std::endl;
-        ASSERT_EQ(sequential_result, parallel_result);
+        for (int i = 0; i < aR * bC; i++) {
+            ASSERT_NEAR(sequential_result[i], parallel_result[i], 0.01);
+        }
     }
 }
 
-TEST(Parallel_Operations_MPI, MATRICES_25x25) {
+TEST(Parallel_Operations_MPI, MATRICES_32x32) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     std::vector<double> a;
     std::vector<double> b;
 
-    int aR = 25, aC = 25, bC = 25;
+    int aR = 32, aC = 32, bC = 32;
 
     if (rank == 0) {
         a = getRandomMatrix(aR, aC, time(0));
@@ -63,18 +65,20 @@ TEST(Parallel_Operations_MPI, MATRICES_25x25) {
         std::vector<double> sequential_result = getSequentialMultiplication(a, b, aR, aC, bC);
         end = MPI_Wtime();
         std::cout << "Time for sequential is " << end - start << std::endl;
-        ASSERT_EQ(sequential_result, parallel_result);
+        for (int i = 0; i < aR * bC; i++) {
+            ASSERT_NEAR(sequential_result[i], parallel_result[i], 0.01);
+        }
     }
 }
 
-TEST(Parallel_Operations_MPI, MATRICES_75x75) {
+TEST(Parallel_Operations_MPI, MATRICES_64x64) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     std::vector<double> a;
     std::vector<double> b;
 
-    int aR = 75, aC = 75, bC = 75;
+    int aR = 64, aC = 64, bC = 64;
 
     if (rank == 0) {
         a = getRandomMatrix(aR, aC, time(0));
@@ -94,7 +98,9 @@ TEST(Parallel_Operations_MPI, MATRICES_75x75) {
         std::vector<double> sequential_result = getSequentialMultiplication(a, b, aR, aC, bC);
         end = MPI_Wtime();
         std::cout << "Time for sequential is " << end - start << std::endl;
-        ASSERT_EQ(sequential_result, parallel_result);
+        for (int i = 0; i < aR * bC; i++) {
+            ASSERT_NEAR(sequential_result[i], parallel_result[i], 0.01);
+        }
     }
 }
 
@@ -125,7 +131,9 @@ TEST(Parallel_Operations_MPI, MATRICES_100x100) {
         std::vector<double> sequential_result = getSequentialMultiplication(a, b, aR, aC, bC);
         end = MPI_Wtime();
         std::cout << "Time for sequential is " << end - start << std::endl;
-        ASSERT_EQ(sequential_result, parallel_result);
+        for (int i = 0; i < aR * bC; i++) {
+            ASSERT_NEAR(sequential_result[i], parallel_result[i], 0.01);
+        }
     }
 }
 
@@ -157,7 +165,9 @@ TEST(Parallel_Operations_MPI, MATRICES_240x240) {
         std::vector<double> sequential_result = getSequentialMultiplication(a, b, aR, aC, bC);
         end = MPI_Wtime();
         std::cout << "Time for sequential is " << end - start << std::endl;
-        ASSERT_EQ(sequential_result, parallel_result);
+        for (int i = 0; i < aR * bC; i++) {
+            ASSERT_NEAR(sequential_result[i], parallel_result[i], 0.01);
+        }
     }
 }
 

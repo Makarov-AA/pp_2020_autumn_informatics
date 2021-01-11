@@ -77,7 +77,7 @@ TEST(Parallel_Operations_MPI, Test4) {
     MPI_Comm_rank(MPI_COMM_WORLD, &proc);
     MPI_Comm_size(MPI_COMM_WORLD, &proc_size);
     std::vector<pixel> input_image, p_out_points, s_out_points;
-    int side = 1000;
+    int side = 500;
     int points_in_image = 0;
 
     if (proc == 0) {
@@ -99,7 +99,7 @@ TEST(Parallel_Operations_MPI, Test5) {
     MPI_Comm_rank(MPI_COMM_WORLD, &proc);
     MPI_Comm_size(MPI_COMM_WORLD, &proc_size);
     std::vector<pixel> input_image, p_out_points, s_out_points;
-    int side = 2000;
+    int side = 1000;
     int points_in_image = 0;
 
     if (proc == 0) {
